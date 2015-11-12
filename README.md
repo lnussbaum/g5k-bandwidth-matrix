@@ -9,5 +9,8 @@ Includes:
 - the latest result
 - all results
 
+The bandwidth column gives the bandwidth for the whole duration of the test (21s).
+The "last 10s" column gives the bandwuidth for the last 10s of the test. This should exclude the lower bw during TCP slow start.
+
 It can be run as a cron job:
 38 * * * * cd /home/lnussbaum/bw-matrix && ./bwmatrix.rb -mr >log.$(date +\%s) 2>&1
