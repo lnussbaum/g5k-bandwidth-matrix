@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Grid'5000 bandwidth matrix</title>
+  </head>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.4/css/jquery.dataTables.css">
+<script type="text/javascript" language="javascript" charset="utf-8" src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script> 
+<body>
+  <div class="container">
+    <h1>Best results</h1>
+    <table class="table table-bordered table-striped table-condensed table-hover" id="best">
+      <thead><tr><th>from</th><th>to</th><th>bandwidth (Mbps)</th><th>last 10s (Mbps)</th><th>RTT (ms)</th><th>time</th></tr></thead>
+        <tbody>
+          <% o[:best].each do |r| %>
+            <tr><td><%= r['from'] %></td><td><%= r['to'] %></td><td><%= r['avg_bw'] %></td><td><%= r['bw_10s'] %></td><td><%= r['rtt'] %></td><td><%= r['time'] %></td></tr>
+          <% end %>
+        </tbody>
+     </table>
+    <h1>Latest results</h1>
+    <table class="table table-bordered table-striped table-condensed table-hover" id="latest">
+      <thead><tr><th>from</th><th>to</th><th>bandwidth (Mbps)</th><th>% of best</th><th>last 10s (Mbps)</th><th>% of best</th><th>RTT (ms)</th><th>time</th></tr></thead>
+        <tbody>
+          <% o[:latest].each do |r| %>
+            <% if r['avg_bw_p'] < 50 or r['bw_10s_p'] < 50 %>
+              <tr class="danger">
+              <% elsif r['avg_bw_p'] < 90 or r['bw_10s_p'] < 90 %>
+              <tr class="warning">
+              <% else %>
+                <tr>
+              <% end %>
+              <td><%= r['from'] %></td><td><%= r['to'] %></td><td><%= r['avg_bw'] %></td><td><%= r['avg_bw_p'] %></td><td><%= r['bw_10s'] %></td><td><%= r['bw_10s_p'] %></td><td><%= r['rtt'] %></td><td><%= r['time'] %></td>
+            </tr>
+          <% end %>
+        </tbody>
+     </table>
+    <h1>All results</h1>
+    <table class="table table-bordered table-striped table-condensed table-hover" id="all">
+      <thead><tr><th>from</th><th>to</th><th>bandwidth (Mbps)</th><th>last 10s (Mbps)</th><th>RTT (ms)</th><th>time</th></tr></thead>
+        <tbody>
+          <% o[:all].each do |r| %>
+            <tr><td><%= r['from'] %></td><td><%= r['to'] %></td><td><%= r['avg_bw'] %></td><td><%= r['bw_10s'] %></td><td><%= r['rtt'] %></td><td><%= r['time'] %></td></tr>
+          <% end %>
+        </tbody>
+     </table>
+  </div>
+<script type="text/javascript" language="javascript" charset="utf-8">
+// Create the table once the page is ready
+  $(document).ready(function(){
+    $('#best').DataTable( { "paging": false } );
+    $('#latest').DataTable( { "paging": false } );
+    $('#all').DataTable();
+  });
+
+</script>
+</body>
+</html>
