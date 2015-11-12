@@ -9,13 +9,14 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.4/css/jquery.dataTables.css">
-<script type="text/javascript" language="javascript" charset="utf-8" src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script> 
+  <script type="text/javascript" language="javascript" charset="utf-8" src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script> 
 <body>
   <div class="container">
 	  <p><a href="https://github.com/lnussbaum/g5k-bandwidth-matrix">information and source code</a></p>
     <h1>Best results</h1>
     <table class="table table-bordered table-striped table-condensed table-hover" id="best">
-      <thead><tr><th>from</th><th>to</th><th>bandwidth (Mbps)</th><th>last 10s (Mbps)</th><th>RTT (ms)</th><th>time</th></tr></thead>
+      <thead><tr><th>from</th><th>to</th><th>bandwidth (Mbps)</th><th>last 10s (Mbps)</th><th>RTT (ms)</th><th>time</th></tr>
+             <tr class="rowfilter"><th>from</th><th>to</th><th>bandwidth (Mbps)</th><th>last 10s (Mbps)</th><th>RTT (ms)</th><th>time</th></tr></thead>
         <tbody>
           <% o[:best].each do |r| %>
             <tr><td><%= r['from'] %></td><td><%= r['to'] %></td><td><%= r['avg_bw'] %></td><td><%= r['bw_10s'] %></td><td><%= r['rtt'] %></td><td><%= r['time'] %></td></tr>
@@ -24,7 +25,8 @@
      </table>
     <h1>Latest results</h1>
     <table class="table table-bordered table-striped table-condensed table-hover" id="latest">
-      <thead><tr><th>from</th><th>to</th><th>bandwidth (Mbps)</th><th>% of best</th><th>last 10s (Mbps)</th><th>% of best</th><th>RTT (ms)</th><th>time</th></tr></thead>
+      <thead><tr><th>from</th><th>to</th><th>bandwidth (Mbps)</th><th>% of best</th><th>last 10s (Mbps)</th><th>% of best</th><th>RTT (ms)</th><th>time</th></tr>
+             <tr class="rowfilter"><th>from</th><th>to</th><th>bandwidth (Mbps)</th><th>% of best</th><th>last 10s (Mbps)</th><th>% of best</th><th>RTT (ms)</th><th>time</th></tr></thead>
         <tbody>
           <% o[:latest].each do |r| %>
             <% if r['avg_bw_p'] < 50 or r['bw_10s_p'] < 50 %>
@@ -41,7 +43,8 @@
      </table>
     <h1>All results</h1>
     <table class="table table-bordered table-striped table-condensed table-hover" id="all">
-      <thead><tr><th>from</th><th>to</th><th>bandwidth (Mbps)</th><th>last 10s (Mbps)</th><th>RTT (ms)</th><th>time</th></tr></thead>
+      <thead><tr><th>from</th><th>to</th><th>bandwidth (Mbps)</th><th>last 10s (Mbps)</th><th>RTT (ms)</th><th>time</th></tr>
+             <tr class="rowfilter"><th>from</th><th>to</th><th>bandwidth (Mbps)</th><th>last 10s (Mbps)</th><th>RTT (ms)</th><th>time</th></tr></thead>
         <tbody>
           <% o[:all].each do |r| %>
             <tr><td><%= r['from'] %></td><td><%= r['to'] %></td><td><%= r['avg_bw'] %></td><td><%= r['bw_10s'] %></td><td><%= r['rtt'] %></td><td><%= r['time'] %></td></tr>
@@ -50,13 +53,35 @@
      </table>
   </div>
 <script type="text/javascript" language="javascript" charset="utf-8">
-// Create the table once the page is ready
-  $(document).ready(function(){
-    $('#best').DataTable( { "paging": false } );
-    $('#latest').DataTable( { "paging": false } );
+  // Create the tables once the page is ready
+  $(document).ready(function() {
+    // By default, attach the order event handler to the first line of the table headers
+    $.extend(true, $.fn.dataTable.defaults, {"orderCellsTop": true});
+  
+    // Initialize the tables
+    $('#best').DataTable({"paging": false});
+    $('#latest').DataTable({"paging": false});
     $('#all').DataTable();
+  
+    // Add individual column searching
+    // See: https://datatables.net/examples/api/multi_filter.html
+  
+    // Add a text input to each column
+    $('table thead tr.rowfilter th').each(function () {
+      var title = $(this).text();
+      $(this).html('<input type="text" placeholder="Search '+title+'"/>');
+    });
+    
+    // Trigger column search when text input fields are filled
+    $.fn.dataTable.tables().forEach(function(table) { // for each DataTable on the page
+      $("thead input", table).on('keyup change', function () {
+        $(table).DataTable()
+          .column($(this).parent().index()+':visible')
+          .search(this.value)
+          .draw();
+      });
+    });
   });
-
 </script>
 </body>
 </html>
