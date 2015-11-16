@@ -46,7 +46,7 @@ def do_measure(targets_restrict)
     begin
       # FIXME
       t[:job] = $g5k.reserve(:site => t[:site], :resources => t[:resources], :walltime => '01:00:00', :wait => false, :queue => t[:queue])
-    rescue Cute::G5K::RequestFailed
+    rescue Cute::G5K::RequestFailed, Cute::G5K::BadRequest
       puts "Error on #{name}, skipping"
       t[:job] = nil
       t[:state] = 'error'
