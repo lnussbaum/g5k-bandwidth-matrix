@@ -105,8 +105,12 @@ def do_measure(targets_restrict)
     from_name, to_name = pair ; from = targets[from_name] ; to = targets[to_name]
     puts "#{from_name} -> #{to_name}"
     t = Time::now
+    sfb = from[:ssh].exec!("ip -s l")
+    stb = to[:ssh].exec!("ip -s l")
     o = from[:ssh].exec!("nuttcp -fparse -i10 -T21 #{to[:node]}")
-    results << { :time => t, :from => from_name, :to => to_name, :output => o }.merge(parse_output(o))
+    sfa = from[:ssh].exec!("ip -s l")
+    sta = to[:ssh].exec!("ip -s l")
+    results << { :time => t, :from => from_name, :to => to_name, :output => o, :stats_from_before => sfb, :stats_to_before => stb, :stats_from_after => sfa, :stats_to_after => sta }.merge(parse_output(o))
   end
 
   fd = File::new("res/bw-matrix.log.#{Time::now.to_s.gsub(' ', '_')}", 'w')
@@ -122,6 +126,39 @@ def do_measure(targets_restrict)
   end
 end
 
+def parse_ipsl(str)
+  ifaces = {}
+  str.split(/^\d+: /).select { |l| l =~ /UP/ }.each do |para|
+    ifname = para.split(': ', 2)[0]
+    rx = para.split(/\n\s*/)[3].split(/\s+/).map { |e| e.to_i }
+    tx = para.split(/\n\s*/)[5].split(/\s+/).map { |e| e.to_i }
+    ifaces[ifname] = { :rx => rx, :tx => tx }
+  end
+  return ifaces
+end
+
+def analyze_stats(r)
+  return if not r['stats_from_before']
+  fb = parse_ipsl(r['stats_from_before'])
+  fa = parse_ipsl(r['stats_from_after'])
+  tb = parse_ipsl(r['stats_to_before'])
+  ta = parse_ipsl(r['stats_to_after'])
+  fb.each_pair do |k,ifs|
+    ifs.each_pair do |iface, v|
+      if v[2] != fa[k][iface][2]
+        puts "Errors in source: #{r['time']} #{r['from']} -> #{r['to']}"
+      end
+    end
+  end
+  tb.each_pair do |k,ifs|
+    ifs.each_pair do |iface, v|
+      if v[2] != ta[k][iface][2]
+        puts "Errors in dest: #{r['time']} #{r['from']} -> #{r['to']}"
+      end
+    end
+  end
+end
+
 def do_render
   d = {}
 
@@ -132,6 +169,7 @@ def do_render
       r['avg_bw'] = r['avg_bw'].to_f
       r['bw_10s'] = r['bw_10s'].to_f
       r['rtt'] = r['rtt'].to_f
+      analyze_stats(r)
     end
   end
 
